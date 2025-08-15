@@ -24,17 +24,20 @@ export const products = sqliteTable("products", {
 export const orders = sqliteTable("orders", {
   id: integer("id", { mode: "number" }).primaryKey({ autoIncrement: true }),
   status: text("status", { enum: orderStatuses }).notNull().default("pending"),
+  totalPrice: integer("total_price").notNull().default(0),
   createdAt: text("created_at").default(sql`CURRENT_TIMESTAMP`),
 });
 
 export const orderItems = sqliteTable("order_items", {
   id: integer("id", { mode: "number" }).primaryKey({ autoIncrement: true }),
-  orderId: integer("order_id").references(() => orders.id, {
-    onDelete: "cascade",
-  }),
-  productId: integer("product_id").references(() => products.id, {
-    onDelete: "cascade",
-  }),
+  orderId: integer("order_id")
+    .notNull()
+    .references(() => orders.id, {
+      onDelete: "cascade",
+    }),
+  productId: integer("product_id")
+    .notNull()
+    .references(() => products.id),
   quantity: integer("quantity").notNull(),
   priceAtPurchase: integer("price_at_purchase").notNull(),
   createdAt: text("created_at").default(sql`CURRENT_TIMESTAMP`),
