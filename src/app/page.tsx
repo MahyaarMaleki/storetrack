@@ -1,66 +1,29 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import type { Product } from "@/db/schema";
+import Link from "next/link"; // Import the Link component
 import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
-export default function Home() {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [searchTerm, setSearchTerm] = useState("");
+export default function HomePage() {
   const router = useRouter();
-
-  // Custom hook to debounce the search term
-  const useDebounce = (value: string, delay: number) => {
-    const [debouncedValue, setDebouncedValue] = useState(value);
-    useEffect(() => {
-      const handler = setTimeout(() => {
-        setDebouncedValue(value);
-      }, delay);
-      return () => {
-        clearTimeout(handler);
-      };
-    }, [value, delay]);
-    return debouncedValue;
-  };
-
-  const debouncedSearchTerm = useDebounce(searchTerm, 500);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function fetchProducts() {
+    async function checkAuth() {
       try {
-        setLoading(true);
-        const url = debouncedSearchTerm
-          ? `/api/products?name=${encodeURIComponent(debouncedSearchTerm)}`
-          : "/api/products";
-
-        const response = await fetch(url);
-
+        const response = await fetch("/api/products");
         if (response.status === 401) {
           router.push("/login");
-          return;
-        }
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch products.");
-        }
-
-        const data = await response.json();
-        setProducts(data);
-      } catch (err) {
-        if (err instanceof Error) {
-          setError(err.message);
         } else {
-          setError("An unknown error occurred.");
+          setLoading(false);
         }
-      } finally {
-        setLoading(false);
+      } catch (error) {
+        console.error("Authentication check failed:", error);
+        router.push("/login");
       }
     }
-
-    fetchProducts();
-  }, [debouncedSearchTerm, router]);
+    checkAuth();
+  }, [router]);
 
   const handleLogout = async () => {
     try {
@@ -71,48 +34,54 @@ export default function Home() {
     }
   };
 
+  if (loading) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-gray-100">
+        <h1 className="text-2xl font-bold text-gray-700">
+          Checking authentication...
+        </h1>
+      </main>
+    );
+  }
+
   return (
-    <main className="flex min-h-screen flex-col items-center p-24">
-      <div className="w-full flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold">StoreTrack</h1>
-        <button
-          onClick={handleLogout}
-          className="py-2 px-4 bg-red-500 text-white rounded-md hover:bg-red-600"
+    <main className="flex min-h-screen flex-col items-center justify-center p-8 bg-gray-50">
+      <button
+        onClick={handleLogout}
+        className="py-2 px-6 mb-12 cursor-pointer bg-red-600 text-white font-medium rounded-lg shadow-md hover:bg-red-700 transition duration-300"
+      >
+        Logout
+      </button>
+
+      <h1 className="text-4xl font-extrabold text-gray-900 mb-12 text-center">
+        StoreTrack Admin Dashboard
+      </h1>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <Link
+          href="/products"
+          className="flex flex-col items-center justify-center p-8 bg-blue-600 text-white rounded-xl shadow-lg hover:bg-blue-700 transform hover:scale-105 transition duration-300 ease-in-out"
         >
-          Logout
-        </button>
+          <span className="text-5xl mb-4">📦</span>
+          <span className="text-2xl font-semibold">Products</span>
+        </Link>
+
+        <Link
+          href="/orders"
+          className="flex flex-col items-center justify-center p-8 bg-green-600 text-white rounded-xl shadow-lg hover:bg-green-700 transform hover:scale-105 transition duration-300 ease-in-out"
+        >
+          <span className="text-5xl mb-4">🛒</span>
+          <span className="text-2xl font-semibold">Orders</span>
+        </Link>
+
+        <Link
+          href="/product-history"
+          className="flex flex-col items-center justify-center p-8 bg-purple-600 text-white rounded-xl shadow-lg hover:bg-purple-700 transform hover:scale-105 transition duration-300 ease-in-out"
+        >
+          <span className="text-5xl mb-4">📊</span>
+          <span className="text-2xl font-semibold">Product History</span>
+        </Link>
       </div>
-
-      <div className="w-full max-w-lg mb-8">
-        <input
-          type="text"
-          placeholder="Search products by name..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-      </div>
-
-      {loading && <p>Loading products...</p>}
-
-      {error && <p className="text-red-500">Error: {error}</p>}
-
-      {!loading && !error && products.length === 0 && <p>No products found.</p>}
-
-      <ul className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-        {!loading &&
-          products.map((product) => (
-            <li
-              key={product.id}
-              className="bg-gray-100 p-4 rounded-lg shadow-md"
-            >
-              <h2 className="text-xl font-semibold">{product.name}</h2>
-              <p className="text-gray-600">Supply: {product.supply}</p>
-              <p className="text-gray-600">Price: ${product.price / 100}</p>
-              <p className="text-gray-600">Category: {product.category}</p>
-            </li>
-          ))}
-      </ul>
     </main>
   );
 }
