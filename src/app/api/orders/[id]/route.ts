@@ -89,7 +89,7 @@ export async function PUT(
     }
 
     return NextResponse.json(
-      { message: "Order status updated successfully.", order: updatedOrder[0] },
+      { message: "Order status updated successfully." },
       { status: 200 }
     );
   } catch (error) {
