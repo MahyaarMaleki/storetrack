@@ -158,20 +158,27 @@ export default function Home() {
           <h1 className="text-3xl font-extrabold text-gray-900">Products</h1>
           <button
             onClick={handleLogout}
-            className="py-2 px-4 bg-red-500 text-white rounded-md hover:bg-red-600"
+            className="cursor-pointer py-2 px-4 bg-red-500 text-white rounded-md hover:bg-red-600"
           >
             Logout
           </button>
         </div>
-
-        <div className="w-full max-w-lg mb-8">
-          <input
-            type="text"
-            placeholder="Search products by name..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
+        <div className="inline-flex justify-center items-center mb-8">
+          <div className="w-full max-w-lg">
+            <input
+              type="text"
+              placeholder="Search products by name..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          <Link
+            href="/products/add"
+            className="w-75 ml-8 py-2 bg-blue-500 hover:bg-blue-600 rounded-md text-center"
+          >
+            <span className="text-xl text-white">Add Product</span>
+          </Link>
         </div>
 
         {loading && <p>Loading products...</p>}

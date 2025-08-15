@@ -109,7 +109,7 @@ export default function OrdersPage() {
       </aside>
 
       {/* Main Content */}
-      <div className="flex-1 p-8">
+      <div className="flex-1 p-6">
         <div className="w-full flex justify-between items-center mb-6">
           <h1 className="text-3xl font-extrabold text-gray-900">Orders</h1>
           <button
@@ -119,17 +119,24 @@ export default function OrdersPage() {
             Logout
           </button>
         </div>
-
-        <div className="w-full max-w-lg mb-8">
-          <form onSubmit={handleSearchById}>
-            <input
-              type="text"
-              placeholder="Search orders by ID..."
-              value={orderIdSearchTerm}
-              onChange={(e) => setOrderIdSearchTerm(e.target.value)}
-              className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-3 focus:ring-blue-500 text-gray-800"
-            />
-          </form>
+        <div className="inline-flex justify-center items-center mb-8">
+          <div className="w-full max-w-lg">
+            <form onSubmit={handleSearchById}>
+              <input
+                type="text"
+                placeholder="Go to order page with ID..."
+                value={orderIdSearchTerm}
+                onChange={(e) => setOrderIdSearchTerm(e.target.value)}
+                className="w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-3 focus:ring-blue-500 text-gray-800"
+              />
+            </form>
+          </div>
+          <Link
+            href="/orders/add"
+            className="w-75 ml-8 py-2 bg-blue-500 hover:bg-blue-600 rounded-md text-center"
+          >
+            <span className="text-xl text-white">Place Order</span>
+          </Link>
         </div>
 
         {loading && (
@@ -155,7 +162,7 @@ export default function OrdersPage() {
               >
                 <Link href={`/orders/${order.id}`} className="block p-5">
                   <h2 className="text-xl font-bold text-gray-900 mb-2">
-                    Order #{order.id}
+                    #{order.id}
                   </h2>
                   <p className="text-gray-700 text-sm mb-1">
                     Status:{" "}
