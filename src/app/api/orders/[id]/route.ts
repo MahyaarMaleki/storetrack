@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db/client";
-import { orders, orderItems, orderStatuses } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { orders, orderStatuses, products, productHistory } from "@/db/schema";
+import { eq, inArray } from "drizzle-orm";
 import { verifyAuth } from "@/lib/auth";
 
 export async function GET(
@@ -20,32 +20,26 @@ export async function GET(
       return NextResponse.json({ error: "Invalid order ID." }, { status: 400 });
     }
 
-    // Fetch the order and its related items
-    const orderWithItems = await db
-      .select()
-      .from(orders)
-      .where(eq(orders.id, orderId))
-      .limit(1);
+    const order = await db.query.orders.findFirst({
+      where: eq(orders.id, orderId),
+      with: {
+        orderItems: {
+          with: {
+            product: true,
+          },
+        },
+      },
+    });
 
-    if (orderWithItems.length === 0) {
+    if (!order) {
       return NextResponse.json({ error: "Order not found." }, { status: 404 });
     }
 
-    const [orderDetail] = orderWithItems;
-
-    // Fetch all items for the specific order
-    const items = await db
-      .select()
-      .from(orderItems)
-      .where(eq(orderItems.orderId, orderDetail.id))
-      .execute();
-
-    const finalOrder = { ...orderDetail, items };
-
-    return NextResponse.json(finalOrder, { status: 200 });
+    // The order object includes the nested orderItems and product data
+    return NextResponse.json(order, { status: 200 });
   } catch (error) {
     return NextResponse.json(
-      { error: "Failed to fetch order." },
+      { error: "Failed to fetch order details." },
       { status: 500 }
     );
   }
@@ -77,16 +71,96 @@ export async function PUT(
       );
     }
 
-    // Update the order's status
-    const updatedOrder = await db
-      .update(orders)
-      .set({ status: status })
-      .where(eq(orders.id, orderId))
-      .returning();
+    await db.transaction(async (tx) => {
+      // Fetch the order with its items to get product IDs and quantities
+      const order = await tx.query.orders.findFirst({
+        where: eq(orders.id, orderId),
+        with: {
+          orderItems: true,
+        },
+      });
 
-    if (updatedOrder.length === 0) {
-      return NextResponse.json({ error: "Order not found." }, { status: 404 });
-    }
+      if (!order) {
+        // Rollback the transaction
+        tx.rollback();
+        return NextResponse.json(
+          { error: "Order not found." },
+          { status: 404 }
+        );
+      }
+
+      const currentStatus = order.status;
+
+      switch (status) {
+        case "cancelled":
+          // Only allow cancellation if the order is still pending
+          if (currentStatus !== "pending") {
+            tx.rollback();
+            return NextResponse.json(
+              { error: "Only pending orders can be cancelled." },
+              { status: 400 }
+            );
+          }
+
+          // Revert product quantities for each item in the order
+          if (order.orderItems && order.orderItems.length > 0) {
+            const productIds = order.orderItems.map((item) => item.productId);
+            const productsToUpdate = await tx.query.products.findMany({
+              where: inArray(products.id, productIds),
+            });
+
+            for (const item of order.orderItems) {
+              const productToUpdate = productsToUpdate.find(
+                (p) => p.id === item.productId
+              );
+
+              if (productToUpdate) {
+                const newSupply = productToUpdate.supply + item.quantity;
+
+                // Update product supply
+                await tx
+                  .update(products)
+                  .set({ supply: newSupply })
+                  .where(eq(products.id, item.productId));
+
+                // Add a history record for the stock change
+                await tx.insert(productHistory).values({
+                  productId: item.productId,
+                  type: "arrival",
+                  quantity: item.quantity,
+                });
+              }
+            }
+          }
+          break;
+
+        case "shipped":
+          // Prevent shipping a cancelled order
+          if (currentStatus === "cancelled") {
+            tx.rollback();
+            return NextResponse.json(
+              { error: "Cannot ship a cancelled order." },
+              { status: 400 }
+            );
+          }
+          break;
+      }
+
+      // Finally, update the order status
+      const updatedOrder = await tx
+        .update(orders)
+        .set({ status: status })
+        .where(eq(orders.id, orderId))
+        .returning();
+
+      if (updatedOrder.length === 0) {
+        tx.rollback();
+        return NextResponse.json(
+          { error: "Order not found." },
+          { status: 404 }
+        );
+      }
+    });
 
     return NextResponse.json(
       { message: "Order status updated successfully." },
