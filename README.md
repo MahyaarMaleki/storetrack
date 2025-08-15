@@ -57,3 +57,8 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 ## Sample Screenshots of some pages
 
+- [home](./src/assets/img/Screenshot_20250815_232116.png)
+- [products](./src/assets/img/Screenshot_20250815_232138.png)
+- [orders](./src/assets/img/Screenshot_20250815_232158.png)
+- [place new order](./src/assets/img/Screenshot_20250815_232209.png)
+- [product history](./src/assets/img/Screenshot_20250815_232221.png)
