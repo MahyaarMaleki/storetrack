@@ -5,9 +5,6 @@ import { eq } from "drizzle-orm";
 import { verifyAuth } from "@/lib/auth";
 import { orderSchema } from "@/lib/validations";
 
-type InsertOrderItem = typeof orderItems.$inferInsert;
-type SelectProduct = typeof products.$inferSelect;
-
 export async function POST(request: Request) {
   const authResponse = await verifyAuth(request);
   if (authResponse instanceof NextResponse) {
