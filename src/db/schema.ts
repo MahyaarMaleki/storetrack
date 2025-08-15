@@ -45,9 +45,7 @@ export const orderItems = sqliteTable("order_items", {
 
 export const productHistory = sqliteTable("product_history", {
   id: integer("id", { mode: "number" }).primaryKey({ autoIncrement: true }),
-  productId: integer("product_id").references(() => products.id, {
-    onDelete: "cascade",
-  }),
+  productId: integer("product_id").references(() => products.id),
   type: text("type", { enum: historyTypes }).notNull(),
   quantity: integer("quantity").notNull(),
   timestamp: text("timestamp").default(sql`CURRENT_TIMESTAMP`),
