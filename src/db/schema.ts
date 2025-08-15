@@ -18,6 +18,7 @@ export const products = sqliteTable("products", {
   category: text("category", { enum: productCategories }).notNull(),
   createdAt: text("created_at").default(sql`CURRENT_TIMESTAMP`),
   updatedAt: text("updated_at").default(sql`CURRENT_TIMESTAMP`),
+  deletedAt: text("deleted_at"),
 });
 
 export const orders = sqliteTable("orders", {
