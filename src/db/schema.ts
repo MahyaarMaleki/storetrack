@@ -1,5 +1,5 @@
 import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
-import { sql } from "drizzle-orm";
+import { sql, relations } from "drizzle-orm";
 
 export const productCategories = [
   "Electronics",
@@ -21,12 +21,21 @@ export const products = sqliteTable("products", {
   deletedAt: text("deleted_at"),
 });
 
+export const productRelations = relations(products, ({ many }) => ({
+  orderItems: many(orderItems),
+  productHistory: many(productHistory),
+}));
+
 export const orders = sqliteTable("orders", {
   id: integer("id", { mode: "number" }).primaryKey({ autoIncrement: true }),
   status: text("status", { enum: orderStatuses }).notNull().default("pending"),
   totalPrice: integer("total_price").notNull().default(0),
   createdAt: text("created_at").default(sql`CURRENT_TIMESTAMP`),
 });
+
+export const orderRelations = relations(orders, ({ many }) => ({
+  orderItems: many(orderItems),
+}));
 
 export const orderItems = sqliteTable("order_items", {
   id: integer("id", { mode: "number" }).primaryKey({ autoIncrement: true }),
@@ -43,6 +52,17 @@ export const orderItems = sqliteTable("order_items", {
   createdAt: text("created_at").default(sql`CURRENT_TIMESTAMP`),
 });
 
+export const orderItemRelations = relations(orderItems, ({ one }) => ({
+  order: one(orders, {
+    fields: [orderItems.orderId],
+    references: [orders.id],
+  }),
+  product: one(products, {
+    fields: [orderItems.productId],
+    references: [products.id],
+  }),
+}));
+
 export const productHistory = sqliteTable("product_history", {
   id: integer("id", { mode: "number" }).primaryKey({ autoIncrement: true }),
   productId: integer("product_id").references(() => products.id),
@@ -50,6 +70,13 @@ export const productHistory = sqliteTable("product_history", {
   quantity: integer("quantity").notNull(),
   timestamp: text("timestamp").default(sql`CURRENT_TIMESTAMP`),
 });
+
+export const productHistoryRelations = relations(productHistory, ({ one }) => ({
+  product: one(products, {
+    fields: [productHistory.productId],
+    references: [products.id],
+  }),
+}));
 
 export const admins = sqliteTable("admins", {
   id: integer("id", { mode: "number" }).primaryKey({ autoIncrement: true }),
