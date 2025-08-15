@@ -1,11 +1,11 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db/client";
 import { orders, orderItems, orderStatuses } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { verifyAuth } from "@/lib/auth";
 
 export async function GET(
-  request: Request,
+  request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   const authResponse = await verifyAuth(request);
@@ -53,7 +53,7 @@ export async function GET(
 
 // For updating order status
 export async function PUT(
-  request: Request,
+  request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   const authResponse = await verifyAuth(request);
@@ -101,7 +101,7 @@ export async function PUT(
 }
 
 export async function DELETE(
-  request: Request,
+  request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   const authResponse = await verifyAuth(request);

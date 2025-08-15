@@ -1,11 +1,11 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db/client";
 import { eq } from "drizzle-orm";
 import { verifyAuth } from "@/lib/auth";
 import { productHistory } from "@/db/schema";
 
 export async function GET(
-  request: Request,
+  request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   const authResponse = await verifyAuth(request);

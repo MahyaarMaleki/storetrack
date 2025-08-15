@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db/client";
 import { products, productHistory } from "@/db/schema";
 import { products as productsSchema } from "@/db/schema";
@@ -8,7 +8,7 @@ import { productSchema } from "@/lib/validations";
 
 type NewProduct = typeof productsSchema.$inferInsert;
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   const authResponse = await verifyAuth(request);
   if (authResponse instanceof NextResponse) {
     return authResponse;
@@ -50,7 +50,7 @@ export async function POST(request: Request) {
   }
 }
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   const authResponse = await verifyAuth(request);
   if (authResponse instanceof NextResponse) {
     return authResponse;

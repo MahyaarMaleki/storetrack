@@ -1,11 +1,11 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db/client";
 import { products, orders, orderItems, productHistory } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { verifyAuth } from "@/lib/auth";
 import { orderSchema } from "@/lib/validations";
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   const authResponse = await verifyAuth(request);
   if (authResponse instanceof NextResponse) {
     return authResponse;
@@ -89,7 +89,7 @@ export async function POST(request: Request) {
   }
 }
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   const authResponse = await verifyAuth(request);
   if (authResponse instanceof NextResponse) {
     return authResponse;

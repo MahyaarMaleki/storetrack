@@ -1,8 +1,8 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db/client";
 import { verifyAuth } from "@/lib/auth";
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   const authResponse = await verifyAuth(request);
   if (authResponse instanceof NextResponse) {
     return authResponse;
