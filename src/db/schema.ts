@@ -48,3 +48,11 @@ export const productHistory = sqliteTable("product_history", {
   quantity: integer("quantity").notNull(),
   timestamp: text("timestamp").default(sql`CURRENT_TIMESTAMP`),
 });
+
+export const admins = sqliteTable("admins", {
+  id: integer("id", { mode: "number" }).primaryKey({ autoIncrement: true }),
+  email: text("email").unique().notNull(),
+  hashedPassword: text("hashed_password").notNull(),
+  createdAt: text("created_at").default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: text("updated_at").default(sql`CURRENT_TIMESTAMP`),
+});
