@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "seed": "tsx scripts/seed.ts",
-    "dev:db": "pnpm drizzle-kit push && pnpm run seed"
+    "dev:db": "pnpm drizzle-kit push && pnpm run seed",
+    "dev:reset": "rm -f sqlite.db && pnpm run dev:db"
   },
   "dependencies": {
     "@libsql/client": "^0.15.11",
