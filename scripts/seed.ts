@@ -27,17 +27,6 @@ async function seed() {
   console.log("Seeding database...");
 
   try {
-    console.log("Clearing existing data...");
-    await db.run(sql`
-      DROP TABLE IF EXISTS "order_items";
-      DROP TABLE IF EXISTS "product_history";
-      DROP TABLE IF EXISTS "products";
-      DROP TABLE IF EXISTS "orders";
-      DROP TABLE IF EXISTS "admins";
-    `);
-
-    console.log("Please re-run your migrations to recreate the tables.");
-
     console.log("Inserting initial data...");
 
     // Seed the admin user
@@ -52,7 +41,6 @@ async function seed() {
     // Seed products
     const sampleProducts = generateProducts(100);
     await db.insert(products).values(sampleProducts);
-    console.log("100 products seeded successfully.");
 
     console.log("Database seeded successfully!");
   } catch (error) {
