@@ -8,17 +8,36 @@ export default function Home() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
   const router = useRouter();
+
+  // Custom hook to debounce the search term
+  const useDebounce = (value: string, delay: number) => {
+    const [debouncedValue, setDebouncedValue] = useState(value);
+    useEffect(() => {
+      const handler = setTimeout(() => {
+        setDebouncedValue(value);
+      }, delay);
+      return () => {
+        clearTimeout(handler);
+      };
+    }, [value, delay]);
+    return debouncedValue;
+  };
+
+  const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
   useEffect(() => {
     async function fetchProducts() {
       try {
         setLoading(true);
+        const url = debouncedSearchTerm
+          ? `/api/products?name=${encodeURIComponent(debouncedSearchTerm)}`
+          : "/api/products";
 
-        const response = await fetch("/api/products");
+        const response = await fetch(url);
 
         if (response.status === 401) {
-          // If the token is invalid or expired, redirect to login
           router.push("/login");
           return;
         }
@@ -41,54 +60,58 @@ export default function Home() {
     }
 
     fetchProducts();
-  }, [router]); // Add router to the dependency array
+  }, [debouncedSearchTerm, router]);
 
   const handleLogout = async () => {
     try {
       await fetch("/api/auth/logout", { method: "POST" });
-      // Redirect to the login page after successful logout
       router.push("/login");
     } catch (err) {
       console.error("Logout failed:", err);
     }
   };
 
-  if (loading) {
-    return (
-      <main className="flex min-h-screen flex-col items-center p-24">
-        <h1 className="text-2xl font-bold">Loading Products...</h1>
-      </main>
-    );
-  }
-
-  if (error) {
-    return (
-      <main className="flex min-h-screen flex-col items-center p-24">
-        <h1 className="text-2xl font-bold text-red-500">Error: {error}</h1>
-      </main>
-    );
-  }
-
   return (
     <main className="flex min-h-screen flex-col items-center p-24">
-      <div className="w-full flex justify-end mb-4">
+      <div className="w-full flex justify-between items-center mb-4">
+        <h1 className="text-2xl font-bold">StoreTrack</h1>
         <button
           onClick={handleLogout}
-          className="py-2 px-4 cursor-pointer bg-red-500 text-white rounded-md hover:bg-red-600"
+          className="py-2 px-4 bg-red-500 text-white rounded-md hover:bg-red-600"
         >
           Logout
         </button>
       </div>
-      <h1 className="text-2xl font-bold mb-8">All Products</h1>
+
+      <div className="w-full max-w-lg mb-8">
+        <input
+          type="text"
+          placeholder="Search products by name..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+      </div>
+
+      {loading && <p>Loading products...</p>}
+
+      {error && <p className="text-red-500">Error: {error}</p>}
+
+      {!loading && !error && products.length === 0 && <p>No products found.</p>}
+
       <ul className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-        {products.map((product) => (
-          <li key={product.id} className="bg-gray-100 p-4 rounded-lg shadow-md">
-            <h2 className="text-xl font-semibold">{product.name}</h2>
-            <p className="text-gray-600">Supply: {product.supply}</p>
-            <p className="text-gray-600">Price: ${product.price / 100}</p>
-            <p className="text-gray-600">Category: {product.category}</p>
-          </li>
-        ))}
+        {!loading &&
+          products.map((product) => (
+            <li
+              key={product.id}
+              className="bg-gray-100 p-4 rounded-lg shadow-md"
+            >
+              <h2 className="text-xl font-semibold">{product.name}</h2>
+              <p className="text-gray-600">Supply: {product.supply}</p>
+              <p className="text-gray-600">Price: ${product.price / 100}</p>
+              <p className="text-gray-600">Category: {product.category}</p>
+            </li>
+          ))}
       </ul>
     </main>
   );
