@@ -96,7 +96,12 @@ export async function GET(request: Request) {
   }
 
   try {
-    const allOrders = await db.select().from(orders).execute();
+    const allOrders = await db.query.orders.findMany({
+      with: {
+        orderItems: true,
+      },
+    });
+
     return NextResponse.json(allOrders, { status: 200 });
   } catch (error) {
     return NextResponse.json(
