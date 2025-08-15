@@ -52,7 +52,7 @@ async function seed() {
     // Seed products
     const sampleProducts = generateProducts(100);
     await db.insert(products).values(sampleProducts);
-    console.log("50 products seeded successfully.");
+    console.log("100 products seeded successfully.");
 
     console.log("Database seeded successfully!");
   } catch (error) {
