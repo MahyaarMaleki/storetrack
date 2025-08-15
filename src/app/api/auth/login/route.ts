@@ -51,7 +51,7 @@ export async function POST(request: Request) {
 
     // If credentials are valid, generate a JWT token
     const token = jwt.sign({ id: admin.id, email: admin.email }, JWT_SECRET!, {
-      expiresIn: "1h",
+      expiresIn: "12h",
     });
 
     return NextResponse.json(
