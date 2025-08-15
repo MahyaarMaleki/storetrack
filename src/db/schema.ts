@@ -85,3 +85,9 @@ export const admins = sqliteTable("admins", {
   createdAt: text("created_at").default(sql`CURRENT_TIMESTAMP`),
   updatedAt: text("updated_at").default(sql`CURRENT_TIMESTAMP`),
 });
+
+export type Product = typeof products.$inferSelect;
+export type Order = typeof orders.$inferSelect;
+export type OrderItem = typeof orderItems.$inferSelect;
+export type ProductHistory = typeof productHistory.$inferSelect;
+export type Admin = typeof admins.$inferSelect;
