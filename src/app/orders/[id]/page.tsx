@@ -6,7 +6,7 @@ import { useRouter, useParams } from "next/navigation";
 
 // Augment the Order and OrderItem types to include relations
 type OrderWithDetails = Order & {
-  items: (OrderItem & { product?: Product })[];
+  orderItems: (OrderItem & { product?: Product })[];
 };
 
 const orderStatuses = ["pending", "shipped", "cancelled"];
@@ -259,13 +259,17 @@ export default function OrderDetailsPage() {
           <h2 className="text-2xl font-bold text-gray-900 mb-4 border-b pb-2">
             Order Items
           </h2>
-          {order.items && order.items.length > 0 ? (
+          {/* Change `order.items` to `order.orderItems` */}
+          {order.orderItems && order.orderItems.length > 0 ? (
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Product ID
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Product Name
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Quantity
@@ -279,10 +283,14 @@ export default function OrderDetailsPage() {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {order.items.map((item) => (
+                  {/* Change `order.items` to `order.orderItems` */}
+                  {order.orderItems.map((item) => (
                     <tr key={item.id}>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        {item.productId}
+                        {item.product?.id}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        {item.product?.name || "Product Not Found"}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {item.quantity}
