@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db/client";
-import { products, productHistory } from "@/db/schema";
+import { products, productHistory, productCategories } from "@/db/schema";
 import { products as productsSchema } from "@/db/schema";
-import { like, sql } from "drizzle-orm";
+import { and, eq, gte, like, lte, sql } from "drizzle-orm";
 import { verifyAuth } from "@/lib/auth";
 import { productSchema } from "@/lib/validations";
 
@@ -59,21 +59,38 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const searchTerm = searchParams.get("name");
+    const category = searchParams.get("category");
+    const minPrice = searchParams.get("minPrice");
+    const maxPrice = searchParams.get("maxPrice");
 
-    let allProducts;
+    const conditions = [];
 
+    // Filter by search term
     if (searchTerm) {
-      // Use 'like' with 'sql' for a reliable case-insensitive search
-      allProducts = await db.query.products.findMany({
-        where: like(
-          sql`lower(${products.name})`,
-          `%${searchTerm.toLowerCase()}%`
-        ),
-      });
-    } else {
-      // Return all products when no search term is present
-      allProducts = await db.query.products.findMany();
+      conditions.push(
+        like(sql`lower(${products.name})`, `%${searchTerm.toLowerCase()}%`)
+      );
     }
+
+    // Filter by category
+    if (category && productCategories.includes(category as any)) {
+      conditions.push(
+        eq(products.category, category as (typeof productCategories)[number])
+      );
+    }
+
+    // Filter by price range
+    if (minPrice) {
+      conditions.push(gte(products.price, Number(minPrice)));
+    }
+    if (maxPrice) {
+      conditions.push(lte(products.price, Number(maxPrice)));
+    }
+
+    // Build the query
+    const allProducts = await db.query.products.findMany({
+      where: conditions.length > 0 ? and(...conditions) : undefined,
+    });
 
     return NextResponse.json(allProducts, { status: 200 });
   } catch (error) {

@@ -1,7 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db/client";
-import { products, orders, orderItems, productHistory } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import {
+  products,
+  orders,
+  orderItems,
+  productHistory,
+  orderStatuses,
+} from "@/db/schema";
+import { and, eq } from "drizzle-orm";
 import { verifyAuth } from "@/lib/auth";
 import { orderSchema } from "@/lib/validations";
 
@@ -96,10 +102,25 @@ export async function GET(request: NextRequest) {
   }
 
   try {
+    const { searchParams } = new URL(request.url);
+    const orderStatus = searchParams.get("status");
+
+    const conditions = [];
+
+    // Filter by status
+    if (orderStatus) {
+      if (orderStatuses.includes(orderStatus as any)) {
+        conditions.push(
+          eq(orders.status, orderStatus as (typeof orderStatuses)[number])
+        );
+      }
+      conditions.push(
+        eq(orders.status, orderStatus as (typeof orderStatuses)[number])
+      );
+    }
+
     const allOrders = await db.query.orders.findMany({
-      with: {
-        orderItems: true,
-      },
+      where: conditions.length > 0 ? and(...conditions) : undefined,
     });
 
     return NextResponse.json(allOrders, { status: 200 });
